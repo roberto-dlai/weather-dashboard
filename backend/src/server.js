@@ -8,6 +8,7 @@ require('dotenv').config();
 const { getDb } = require('./utils/db');
 const citiesRouter = require('./routes/cities');
 const weatherRouter = require('./routes/weather');
+const { startScheduler, setupGracefulShutdown } = require('./schedulers/weatherCollector');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -80,6 +81,12 @@ if (require.main === module) {
     console.log(`🚀 Weather Dashboard server running on http://localhost:${PORT}`);
     console.log(`📊 API available at http://localhost:${PORT}/api`);
     console.log(`🌐 Frontend available at http://localhost:${PORT}`);
+
+    // Start the weather collection scheduler
+    startScheduler();
+
+    // Setup graceful shutdown handlers
+    setupGracefulShutdown();
   });
 }
 
