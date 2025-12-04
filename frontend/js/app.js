@@ -41,6 +41,11 @@ async function init() {
   // Load initial data
   await loadCities();
 
+  // Initialize charts
+  if (window.chartFunctions) {
+    await window.chartFunctions.initCharts();
+  }
+
   // Setup auto-refresh every 5 minutes
   setInterval(loadCities, 5 * 60 * 1000);
 }
@@ -76,6 +81,11 @@ async function loadCities() {
 
       renderCities();
       updateLastUpdateTime();
+
+      // Render charts
+      if (window.chartFunctions) {
+        await window.chartFunctions.refreshCharts();
+      }
     }
   } catch (error) {
     showError(`Failed to load cities: ${error.message}`);
