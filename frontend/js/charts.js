@@ -125,11 +125,11 @@ async function renderTemperatureChart() {
           y: {
             title: {
               display: true,
-              text: 'Temperature (°C)'
+              text: `Temperature (${state.temperatureUnit === 'F' ? '°F' : '°C'})`
             },
             ticks: {
               callback: function(value) {
-                return value + '°C';
+                return value + (state.temperatureUnit === 'F' ? '°F' : '°C');
               }
             }
           }
@@ -168,9 +168,12 @@ async function prepareTemperatureData() {
 
       // Add historical data (solid line, larger points)
       historicalData.forEach(record => {
+        const temp = state.temperatureUnit === 'F'
+          ? (record.temperature * 9/5) + 32
+          : record.temperature;
         combinedData.push({
           x: new Date(record.timestamp),
-          y: record.temperature,
+          y: temp,
           isForecast: false
         });
       });
@@ -184,9 +187,12 @@ async function prepareTemperatureData() {
         const forecastDate = new Date(forecast.timestamp);
         // Only include forecasts within the 7-day window
         if (forecastDate <= sevenDaysFromNow) {
+          const temp = state.temperatureUnit === 'F'
+            ? (forecast.temperature * 9/5) + 32
+            : forecast.temperature;
           combinedData.push({
             x: forecastDate,
-            y: forecast.temperature,
+            y: temp,
             isForecast: true
           });
         }

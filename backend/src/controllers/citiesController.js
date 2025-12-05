@@ -1,4 +1,5 @@
 const { getDb } = require('../utils/db');
+const { geocodeCity } = require('../services/weatherService');
 
 /**
  * Get all tracked cities
@@ -38,16 +39,17 @@ function getCityById(req, res) {
 
 /**
  * Add a new city to track
+ * Now uses geocoding - only requires city name, optional state, and country
  */
-function addCity(req, res) {
+async function addCity(req, res) {
   try {
-    const { name, country, latitude, longitude } = req.body;
+    const { name, state, country } = req.body;
 
     // Validation
-    if (!name || !country || latitude === undefined || longitude === undefined) {
+    if (!name || !country) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: name, country, latitude, longitude'
+        error: 'Missing required fields: name and country (state is optional)'
       });
     }
 
@@ -66,10 +68,16 @@ function addCity(req, res) {
       });
     }
 
-    // Insert city
+    // Geocode the city to get coordinates
+    console.log(`Geocoding: ${name}${state ? ', ' + state : ''}, ${country}`);
+    const geoResult = await geocodeCity(name, state, country);
+
+    console.log(`Geocoded: ${geoResult.name} at ${geoResult.lat}, ${geoResult.lon}`);
+
+    // Insert city with geocoded coordinates
     const result = db.prepare(
       'INSERT INTO cities (name, country, latitude, longitude) VALUES (?, ?, ?, ?)'
-    ).run(name, country, latitude, longitude);
+    ).run(geoResult.name, geoResult.country, geoResult.lat, geoResult.lon);
 
     // Initialize collection metadata
     db.prepare(
@@ -79,7 +87,11 @@ function addCity(req, res) {
     // Fetch created city
     const city = db.prepare('SELECT * FROM cities WHERE id = ?').get(result.lastInsertRowid);
 
-    res.status(201).json({ success: true, data: city });
+    res.status(201).json({
+      success: true,
+      data: city,
+      message: `City added: ${geoResult.name} (${geoResult.lat}, ${geoResult.lon})`
+    });
 
   } catch (error) {
     console.error('Error adding city:', error);

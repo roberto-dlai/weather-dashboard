@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const API_KEY = process.env.OPENWEATHER_API_KEY;
 const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+const GEO_URL = 'https://api.openweathermap.org/geo/1.0';
 
 // Simple in-memory cache (10-minute TTL)
 const cache = new Map();
@@ -113,6 +114,54 @@ async function getForecast(lat, lon) {
 }
 
 /**
+ * Geocode a city name to get latitude and longitude
+ * @param {string} cityName - City name (e.g., "London", "New York")
+ * @param {string} stateCode - Optional state code (e.g., "NY" for US states)
+ * @param {string} countryCode - Country code (e.g., "US", "GB")
+ * @returns {Promise<{lat: number, lon: number, name: string}>}
+ */
+async function geocodeCity(cityName, stateCode, countryCode) {
+  try {
+    // Build query string: "city,state,country" or "city,country"
+    let query = cityName;
+    if (stateCode) {
+      query += `,${stateCode}`;
+    }
+    if (countryCode) {
+      query += `,${countryCode}`;
+    }
+
+    const url = `${GEO_URL}/direct?q=${encodeURIComponent(query)}&limit=1&appid=${API_KEY}`;
+    console.log(`Geocoding city: ${query}`);
+
+    const response = await axios.get(url, { timeout: 5000 });
+    const data = response.data;
+
+    if (!data || data.length === 0) {
+      throw new Error(`City not found: ${query}`);
+    }
+
+    const result = data[0];
+    return {
+      lat: result.lat,
+      lon: result.lon,
+      name: result.name,
+      state: result.state || null,
+      country: result.country
+    };
+
+  } catch (error) {
+    if (error.response) {
+      throw new Error(`Geocoding API error: ${error.response.status} - ${error.response.data.message || 'Unknown error'}`);
+    } else if (error.request) {
+      throw new Error('Network error: Unable to reach Geocoding API');
+    } else {
+      throw error;
+    }
+  }
+}
+
+/**
  * Clear cache (for testing)
  */
 function clearCache() {
@@ -122,5 +171,6 @@ function clearCache() {
 module.exports = {
   getCurrentWeather,
   getForecast,
+  geocodeCity,
   clearCache
 };

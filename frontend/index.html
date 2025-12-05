@@ -21,14 +21,13 @@
     <section class="add-city-section">
       <h2>Add City</h2>
       <form id="add-city-form" class="add-city-form">
-        <input type="text" id="city-name" placeholder="City name" required>
-        <input type="text" id="country-code" placeholder="Country code (e.g., US)" required maxlength="2">
-        <input type="number" id="latitude" placeholder="Latitude" step="any" required>
-        <input type="number" id="longitude" placeholder="Longitude" step="any" required>
+        <input type="text" id="city-name" placeholder="City name (e.g., London)" required>
+        <input type="text" id="state-code" placeholder="State (optional, e.g., CA for California)">
+        <input type="text" id="country-code" placeholder="Country code (e.g., US, GB)" required maxlength="2">
         <button type="submit" class="btn btn-primary">Add City</button>
       </form>
       <p class="help-text">
-        💡 Tip: Use <a href="https://www.latlong.net/" target="_blank">latlong.net</a> to find coordinates
+        💡 Coordinates are automatically geocoded from the city name
       </p>
     </section>
 
@@ -36,6 +35,7 @@
     <section class="controls">
       <button id="refresh-btn" class="btn btn-secondary">🔄 Refresh All</button>
       <button id="collect-btn" class="btn btn-secondary">📥 Collect Weather Data</button>
+      <button id="temp-unit-btn" class="btn btn-secondary">🌡️ °F</button>
       <span id="last-update" class="last-update">Last updated: Never</span>
     </section>
 

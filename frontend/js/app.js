@@ -6,7 +6,8 @@
 const state = {
   cities: [],
   lastUpdate: null,
-  isLoading: false
+  isLoading: false,
+  temperatureUnit: 'C'  // 'C' or 'F'
 };
 
 // DOM elements
@@ -18,7 +19,8 @@ const elements = {
   errorMessage: null,
   lastUpdate: null,
   refreshBtn: null,
-  collectBtn: null
+  collectBtn: null,
+  tempUnitBtn: null
 };
 
 /**
@@ -34,6 +36,14 @@ async function init() {
   elements.lastUpdate = document.getElementById('last-update');
   elements.refreshBtn = document.getElementById('refresh-btn');
   elements.collectBtn = document.getElementById('collect-btn');
+  elements.tempUnitBtn = document.getElementById('temp-unit-btn');
+
+  // Load temperature unit preference from localStorage
+  const savedUnit = localStorage.getItem('temperatureUnit');
+  if (savedUnit) {
+    state.temperatureUnit = savedUnit;
+  }
+  updateTempUnitButton();
 
   // Setup event listeners
   setupEventListeners();
@@ -60,6 +70,7 @@ function setupEventListeners() {
   // Control buttons
   elements.refreshBtn.addEventListener('click', handleRefresh);
   elements.collectBtn.addEventListener('click', handleCollect);
+  elements.tempUnitBtn.addEventListener('click', handleTempUnitToggle);
 }
 
 /**
@@ -160,8 +171,9 @@ function createCityCard(city) {
   }
 
   const weatherIcon = getWeatherIcon(weather.weather_condition);
-  const temperature = Math.round(weather.temperature);
-  const feelsLike = Math.round(weather.feels_like);
+  const temperature = convertTemp(weather.temperature);
+  const feelsLike = convertTemp(weather.feels_like);
+  const tempUnit = getTempUnit();
 
   // Format timestamp
   const timestamp = new Date(weather.timestamp);
@@ -177,7 +189,7 @@ function createCityCard(city) {
         <div class="weather-icon">${weatherIcon}</div>
       </div>
 
-      <div class="temperature">${temperature}°C</div>
+      <div class="temperature">${temperature}${tempUnit}</div>
 
       <div style="margin-bottom: 10px; opacity: 0.9;">
         ${weather.weather_description}
@@ -194,7 +206,7 @@ function createCityCard(city) {
         </div>
         <div class="detail-item">
           <span>🌡️ Feels like:</span>
-          <span>${feelsLike}°C</span>
+          <span>${feelsLike}${tempUnit}</span>
         </div>
         <div class="detail-item">
           <span>🎚️ Pressure:</span>
@@ -251,6 +263,58 @@ function getTimeAgo(date) {
 }
 
 /**
+ * Convert Celsius to Fahrenheit
+ */
+function celsiusToFahrenheit(celsius) {
+  return (celsius * 9/5) + 32;
+}
+
+/**
+ * Convert temperature based on current unit setting
+ */
+function convertTemp(celsius) {
+  if (state.temperatureUnit === 'F') {
+    return Math.round(celsiusToFahrenheit(celsius));
+  }
+  return Math.round(celsius);
+}
+
+/**
+ * Get temperature unit symbol
+ */
+function getTempUnit() {
+  return state.temperatureUnit === 'F' ? '°F' : '°C';
+}
+
+/**
+ * Update temperature unit button text
+ */
+function updateTempUnitButton() {
+  const otherUnit = state.temperatureUnit === 'C' ? '°F' : '°C';
+  elements.tempUnitBtn.textContent = `🌡️ ${otherUnit}`;
+}
+
+/**
+ * Handle temperature unit toggle
+ */
+function handleTempUnitToggle() {
+  // Toggle between C and F
+  state.temperatureUnit = state.temperatureUnit === 'C' ? 'F' : 'C';
+
+  // Save preference to localStorage
+  localStorage.setItem('temperatureUnit', state.temperatureUnit);
+
+  // Update button text
+  updateTempUnitButton();
+
+  // Re-render cities and charts
+  renderCities();
+  if (window.chartFunctions) {
+    window.chartFunctions.refreshCharts();
+  }
+}
+
+/**
  * Handle add city form submission
  */
 async function handleAddCity(e) {
@@ -258,10 +322,14 @@ async function handleAddCity(e) {
 
   const formData = {
     name: document.getElementById('city-name').value.trim(),
-    country: document.getElementById('country-code').value.trim().toUpperCase(),
-    latitude: parseFloat(document.getElementById('latitude').value),
-    longitude: parseFloat(document.getElementById('longitude').value)
+    state: document.getElementById('state-code').value.trim().toUpperCase() || undefined,
+    country: document.getElementById('country-code').value.trim().toUpperCase()
   };
+
+  // Remove state if empty
+  if (!formData.state) {
+    delete formData.state;
+  }
 
   try {
     showLoading(true);
@@ -276,7 +344,7 @@ async function handleAddCity(e) {
       // Reload cities
       await loadCities();
 
-      showSuccess(`Successfully added ${formData.name}!`);
+      showSuccess(response.message || `Successfully added ${response.data.name}!`);
     }
   } catch (error) {
     showError(`Failed to add city: ${error.message}`);

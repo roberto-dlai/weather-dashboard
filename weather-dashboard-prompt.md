@@ -194,7 +194,7 @@ Note: Use a single root package.json that manages both backend and frontend depe
   - File-based database that's easy to manage and backup
   - If learning PostgreSQL is a specific goal, you may substitute it, but SQLite is recommended for this project scope
 - Schema should include:
-  - **Cities table**: id, name, country, latitude, longitude, date_added, last_updated
+  - **Cities table**: id, name, country, latitude, longitude (auto-geocoded), date_added, last_updated
   - **Weather_records table**: id, city_id, temperature, feels_like, humidity, pressure, wind_speed, weather_condition, timestamp, is_forecast (boolean)
   - **User_preferences table**: for storing dashboard settings
   - **Collection_metadata table**: city_id, first_collection_date, total_records, last_successful_fetch
@@ -210,10 +210,15 @@ Note: Use a single root package.json that manages both backend and frontend depe
   - Use OpenWeatherMap free tier API (https://openweathermap.org/api)
   - Sign up for free account at: https://home.openweathermap.org/users/sign_up
   - After registration, get your API key from: https://home.openweathermap.org/api_keys
+  - **APIs Used**:
+    - Current Weather Data API - Get real-time weather
+    - 5-Day Forecast API - Get weather predictions
+    - Geocoding API - Convert city names to coordinates (NEW!)
   - **Free tier limitations**:
     - 60 API calls per minute / 1,000,000 calls per month
     - Current weather data only (no historical data access)
     - 5-day forecast available (3-hour intervals)
+    - Geocoding included in free tier
     - No bulk downloads or advanced features
   
 - **API Key Security** ⚠️ **CRITICAL**:
@@ -246,23 +251,32 @@ Note: Use a single root package.json that manages both backend and frontend depe
 
 #### Core Features (Required) [Complexity: Beginner]
 - Display current weather cards for each tracked city
-- Add/remove cities using a simple text input
+- **Add cities using automatic geocoding**:
+  - City name input (required)
+  - State input (optional, for US cities)
+  - Country code input (required, e.g., "US", "GB")
+  - Coordinates are automatically geocoded using OpenWeatherMap Geocoding API
+  - No need for manual latitude/longitude entry
+- Remove cities with delete button
 - Basic charts showing temperature data as it's collected
 - Responsive design for mobile and desktop
 - Loading states and error messages
 
 #### Enhanced Features (Optional) [Complexity: Advanced]
-- **City Autocomplete** (Choose one approach):
-  - Option 1: Use OpenWeatherMap Geocoding API for city search
-  - Option 2: Include a JSON file with top 1000 cities
-  - Option 3: Simple datalist with predefined major cities
+- **City Autocomplete**:
+  - Auto-suggest city names as user types
+  - Display list of matching cities with country codes
+  - Can use OpenWeatherMap Geocoding API search endpoint
 - **Advanced Charts**:
   - Temperature trends with smooth animations
   - Weather condition distribution pie charts
   - Comparative city analysis
 - **UI Enhancements**:
   - Dark mode toggle
-  - Temperature unit switcher (C/F)
+  - **Temperature unit switcher (C/F)** - IMPLEMENTED ✓
+    - Toggle button to switch between Celsius and Fahrenheit
+    - Preference saved in browser localStorage
+    - Updates all displays including charts in real-time
   - Data export to CSV
   - Weather alerts/notifications
 
@@ -294,7 +308,10 @@ Note: Use a single root package.json that manages both backend and frontend depe
 #### Optional Enhancements (Stretch Goals) [Complexity: Advanced]
 - Export data to CSV (server-side generation)
 - Dark mode toggle
-- Temperature unit toggle (Celsius/Fahrenheit)
+- **Temperature unit toggle (Celsius/Fahrenheit)** - IMPLEMENTED ✓
+  - Real-time toggle between °C and °F
+  - Persists user preference in localStorage
+  - Automatically converts all temperature displays and charts
 - Basic weather alerts (e.g., notify when temperature drops below freezing)
 - Advanced error recovery with retry logic
 - Data archival (keep daily averages for 30-90 days before deletion)

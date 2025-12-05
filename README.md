@@ -106,9 +106,11 @@ The application will be available at **http://localhost:3000**
 ### Web Interface
 
 1. **Add a City**:
-   - Enter city name, country code, latitude, and longitude
-   - Use [latlong.net](https://www.latlong.net/) to find coordinates
+   - Enter city name (e.g., "London")
+   - Enter state (optional, for US cities like "CA" for California)
+   - Enter country code (e.g., "US", "GB")
    - Click "Add City"
+   - Coordinates are automatically geocoded from the city name
 
 2. **View Weather Data**:
    - Current weather displayed on city cards
