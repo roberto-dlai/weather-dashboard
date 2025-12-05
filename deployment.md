@@ -113,7 +113,7 @@ Name: weather-dashboard
 Environment: Node
 Region: Choose closest to your location
 Branch: main
-Build Command: npm install
+Build Command: npm install && npm run build
 Start Command: npm start
 ```
 
@@ -130,9 +130,11 @@ DB_PATH=./database/weather.db
 
 ### 3. Configure Build Settings
 
-Render automatically detects Node.js and runs `npm install` and `npm start`.
+Render automatically detects Node.js. The build command runs `npm install && npm run build` which:
+- Installs all dependencies
+- Initializes the SQLite database with tables
 
-**Optional: Add build script in package.json:**
+**Build script in package.json:**
 ```json
 {
   "scripts": {
@@ -141,6 +143,8 @@ Render automatically detects Node.js and runs `npm install` and `npm start`.
   }
 }
 ```
+
+This ensures the database is properly initialized on every deployment.
 
 ### 4. Deploy
 
